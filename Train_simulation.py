@@ -52,7 +52,7 @@ class CAT(nn.Module) :
         # Learning rate schedule: 0.01 for first 50 epochs, 0.001 for next 20, 0.0001 for last 30
         lr_schedule = {
             0: 0.01,      # epochs 0-49
-            50: 0.001,    # epochs 50-69
+            10: 0.001,    # epochs 50-69
             70: 0.0001    # epochs 70-99
         }
         
