@@ -24,8 +24,8 @@ class CAT(nn.Module) :
         self.network = ClientNetwork(self.N, d_latent, h, dropout, seq_len, cap_in_dim , lr).to(device)
         
         # Path to dataset file
-        chartevents_path = "/content/drive/MyDrive/split_learning/CHARTEVENTS.csv"
-        #chartevents_path = "./CHARTEVENTS.csv"
+        #chartevents_path = "/content/drive/MyDrive/split_learning/CHARTEVENTS.csv"
+        chartevents_path = "./CHARTEVENTS.csv"
 
         # Read dataset
         df_chartevents = pd.read_csv(chartevents_path)
