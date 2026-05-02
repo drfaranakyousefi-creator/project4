@@ -42,7 +42,7 @@ class CAT(nn.Module) :
         self.L1Loss= nn.L1Loss()
         self.loss_fn = nn.MSELoss()
 
-    def fit(self , epochs ): 
+    def fit(self , epochs , lr_schedule): 
         # Store training/testing loss across epochs
         history = {
             'loss_train' : [] , 
@@ -50,11 +50,7 @@ class CAT(nn.Module) :
         }
         
         # Learning rate schedule: 0.01 for first 50 epochs, 0.001 for next 20, 0.0001 for last 30
-        lr_schedule = {
-            0: 0.01,      # epochs 0-49
-            10: 0.001,    # epochs 50-69
-            70: 0.0001    # epochs 70-99
-        }
+
         
         for epoch in range(epochs) : 
             # Update learning rate based on schedule
