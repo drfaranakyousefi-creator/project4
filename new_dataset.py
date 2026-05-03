@@ -2,7 +2,7 @@ import pandas as pd
 import torch
 import math
 from torch.utils.data import DataLoader, Dataset
-
+sgg
 
 # ─────────────────────────────────────────────
 # فیلتر کردن داده های نویزی
