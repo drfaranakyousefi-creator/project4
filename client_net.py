@@ -220,8 +220,7 @@ class compressor(nn.Module):
             nn.ReLU(),
             nn.Dropout(0.1),
             nn.Linear(d_out * 2, d_out),
-            nn.LayerNorm(d_out),
-            nn.ReLU()
+            nn.LayerNorm(d_out)
         )
         
         # Attention-based pooling for better aggregation
