@@ -48,10 +48,7 @@ class CAT(nn.Module) :
             'loss_train' : [] , 
             'loss_test'  : []
         }
-        
-        # Learning rate schedule: 0.01 for first 50 epochs, 0.001 for next 20, 0.0001 for last 30
 
-        
         for epoch in range(epochs) : 
             # Update learning rate based on schedule
             if epoch in lr_schedule:
@@ -98,65 +95,55 @@ class CAT(nn.Module) :
             self.network.train_one_batch(loss_client, v, grad.clone())
         return True
 
-    def evaluate_one_epoch(self)  :
+    def evaluate_one_epoch(self):
         # Compute training loss in evaluation mode
         loss_train = 0 
         number = 0 
         
-        for x , l , mask in self.data.train_loader :  
+        for x, l, mask in self.data.train_loader:
             l = l.to(self.device)
+            v = self.network(x.to(self.device), mask, train=False)
+            prediction = self.transmittion.send_data(v, l, status='test')
             
-            # Forward pass without training updates
-            v  = self.network(x.to(self.device), mask , train=False)
-            prediction = self.transmittion.send_data(v , l , status='test')
-            
-            # Accumulate weighted loss
-            loss_train +=x.shape[0] * self.loss_fn(prediction.to(self.device) , l )
+            # ← squeeze اضافه شد
+            loss_train += x.shape[0] * self.loss_fn(prediction.squeeze(-1).to(self.device), l)
             number += x.shape[0]
         
-        # Mean training loss
-        loss_train = loss_train/number
+        loss_train = loss_train / number
         
         # Compute test loss
         loss_test = 0 
         number = 0 
         
-        for x , l , mask in self.data.test_loader :  
+        for x, l, mask in self.data.test_loader:
             l = l.to(self.device)
-            v   = self.network(x.to(self.device) , mask  ,train=False)
-            prediction = self.transmittion.send_data(v, l , status='test')
+            v = self.network(x.to(self.device), mask, train=False)
+            prediction = self.transmittion.send_data(v, l, status='test')
             
-            # Accumulate weighted loss
-            loss_test +=x.shape[0] * self.loss_fn(prediction.to(self.device) , l )
+            # ← squeeze اضافه شد
+            loss_test += x.shape[0] * self.loss_fn(prediction.squeeze(-1).to(self.device), l)
             number += x.shape[0]
         
-        # Mean test loss
-        loss_test = loss_test/number 
+        loss_test = loss_test / number 
         
-        return loss_train , loss_test     
+        return loss_train, loss_test
 
-    def get_knowledge(self , CAT_object ) : 
+    def get_knowledge(self, CAT_object):
         # Access all autoencoders from another CAT instance
-        all_auto_encoders  = CAT_object.network.multi_autoEncoder.auto_encoders
+        all_auto_encoders = CAT_object.network.multi_autoEncoder.auto_encoders
         
-        # For each feature choose best autoencoder
-        for i in range(self.N) : 
-            l1Loss = [] 
+        for i in range(self.N):
+            l1Loss = []
+            for auto_endocer in all_auto_encoders:
+                l1Loss.append(self.compute_autoEnccoder_loss(auto_endocer, i))
             
-            # Evaluate each autoencoder for feature i
-            for auto_endocer in  all_auto_encoders : 
-                l1Loss.append(self.compute_autoEnccoder_loss(auto_endocer , i ))
-            
-            # Select minimum-loss autoencoder
             min_idx = torch.argmin(torch.stack(l1Loss))
             print(f'the feature {i} chooses the autocoder {min_idx}')
             
-            # Load its weights to corresponding position in current model
             weights = all_auto_encoders[min_idx].state_dict()
             self.network.multi_autoEncoder.auto_encoders[i].load_state_dict(weights)
             
     def compute_autoEnccoder_loss(self, auto_encoder, i):
-        # Compute reconstruction loss of one autoencoder on feature i
         total_loss = 0.0
         total_samples = 0  
 
@@ -165,26 +152,16 @@ class CAT(nn.Module) :
             mask = mask.to(self.device)
             
             b, seq_len, _ = x.shape
-            
-            # Select feature i (flatten for AE input)
-            inp = x[:, :, i].reshape(-1, 1)  # (b*seq_len, 1)
-            
-            # Forward pass through autoencoder
+            inp = x[:, :, i].reshape(-1, 1)
             _, decoder_out = auto_encoder(inp)
-            
-            # Reshape decoder output
             decoder_out = decoder_out.reshape(b, seq_len)
             
-            # Apply mask to exclude padded positions
             masked_inp = inp.reshape(b, seq_len) * mask
             masked_out = decoder_out * mask
             
-            # Compute L1 loss
             batch_loss = self.L1Loss(masked_inp, masked_out)
-            
             total_loss += batch_loss.item() * b
             total_samples += b
         
-        # Average loss over samples
         mean_loss = total_loss / total_samples
         return torch.tensor(mean_loss)
