@@ -88,8 +88,10 @@ class CAT(nn.Module) :
             
             # فقط اولین batch رو پرینت میکنه
             if i == 0:
+                print("v sample:", v[0].detach().cpu().numpy())
                 print("v mean:", v.mean().item(), "v std:", v.std().item())
-                print("grad mean:", grad.abs().mean().item(), "grad max:", grad.abs().max().item())
+                print("v min:", v.min().item(), "v max:", v.max().item())
+                print("grad mean:", grad.abs().mean().item())
                 print("loss_client:", loss_client.item())
             
             self.network.train_one_batch(loss_client, v, grad.clone())
