@@ -346,7 +346,10 @@ class data_preparing:
         x = torch.concat(all_data, dim=0)
         y = torch.concat(all_labels, dim=0)
         masks = torch.concat(all_masks, dim=0)
-
+        perm = torch.randperm(x.shape[0])
+        x = x[perm]
+        y = y[perm]
+        masks = masks[perm]
         # تقسیم train/test
         train_number = int((1 - test_size) * x.shape[0])
         train_dataset = data(x[:train_number], y[:train_number], masks[:train_number])
