@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn 
 import pandas as pd 
 import numpy as np 
-
+سس
 class CAT(nn.Module) : 
     def __init__(self , seq_len, dataset_name,batch_size ,test_size , target  , d_latent  , h , dropout ,cap_in_dim , lr) -> None:
         super().__init__()
