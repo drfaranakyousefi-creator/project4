@@ -3,6 +3,7 @@ import torch
 import math
 from torch.utils.data import DataLoader, Dataset
 
+
 # ─────────────────────────────────────────────
 # فیلتر کردن داده های نویزی
 # ─────────────────────────────────────────────
@@ -306,16 +307,9 @@ class data_preparing:
                 self.feature_mean[i] = vals.mean()
                 self.feature_std[i] = vals.std() + 1e-4
 
-        # محاسبه mean و std label
-        label_tensor = torch.tensor(label_values_raw, dtype=torch.float)
-        self.label_mean = label_tensor.mean()
-        self.label_std = label_tensor.std() + 1e-4
-
-        # اعمال نرمال‌سازی روی dataframe
+        # اعمال نرمال‌سازی روی dataframe - فقط feature ها نرمال میشن، label دست نخوره
         def normalize_value(item_id, value):
-            if item_id == label_itemid:
-                return (value - self.label_mean.item()) / self.label_std.item()
-            elif item_id in col_map:
+            if item_id in col_map:
                 c = col_map[item_id]
                 return (value - self.feature_mean[c].item()) / self.feature_std[c].item()
             return value
@@ -324,8 +318,9 @@ class data_preparing:
             lambda row: normalize_value(row['itemid'], self._safe_float(row['value'])),
             axis=1
         )
+        # label مقدار خام خودش رو داره - بدون نرمال‌سازی
         filtered['label_normalized'] = filtered.apply(
-            lambda row: (self._safe_float(row['value']) - self.label_mean.item()) / self.label_std.item()
+            lambda row: self._safe_float(row['value'])
             if row['itemid'] == label_itemid else 0.0,
             axis=1
         )
@@ -346,10 +341,13 @@ class data_preparing:
         x = torch.concat(all_data, dim=0)
         y = torch.concat(all_labels, dim=0)
         masks = torch.concat(all_masks, dim=0)
+
+        # shuffle قبل از split
         perm = torch.randperm(x.shape[0])
         x = x[perm]
         y = y[perm]
         masks = masks[perm]
+
         # تقسیم train/test
         train_number = int((1 - test_size) * x.shape[0])
         train_dataset = data(x[:train_number], y[:train_number], masks[:train_number])
