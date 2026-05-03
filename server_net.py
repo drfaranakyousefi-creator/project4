@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.nn.functional import softmax
 import torch.nn.functional as F
-سس
+
 def squash(x, dim=-1):
     # x: (batch, n_caps_out, caps_out_dim)
     s_norm_sq = torch.sum(x ** 2, dim=dim, keepdim=True)
