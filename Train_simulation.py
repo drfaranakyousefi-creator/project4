@@ -84,18 +84,19 @@ class CAT(nn.Module) :
 
         return history
 
-    def train_one_epoch(self) :
-        # Iterate through training batches
-        for x , l , mask in self.data.train_loader :  
-            # Send input through client model
-            v, loss_client  = self.network(x.to(self.device)  , mask)
-            
-            # Transmit intermediate representation
-            grad = self.transmittion.send_data(v , l , status='train')
-            
-            # Update client model using gradients
-            self.network.train_one_batch(loss_client , v, grad.clone())
-        return True
+
+    def train_one_epoch(self):
+    for x, l, mask in self.data.train_loader:
+        v, loss_client = self.network(x.to(self.device), mask)
+        grad = self.transmittion.send_data(v, l, status='train')
+        
+        print("v mean:", v.mean().item(), "v std:", v.std().item())
+        print("grad mean:", grad.abs().mean().item(), "grad max:", grad.abs().max().item())
+        print("loss_client:", loss_client.item())
+        
+        self.network.train_one_batch(loss_client, v, grad.clone())
+        break  # فقط یه batch چک میکنیم
+    return True
 
     def evaluate_one_epoch(self)  :
         # Compute training loss in evaluation mode
