@@ -94,7 +94,7 @@ class prediction_net(nn.Module):
         )
 
         self.loss_fn = nn.MSELoss()
-        self.optimizer = optim.Adam(self.parameters(), lr=lr, weight_decay=1e-5)
+        self.optimizer = optim.Adam(self.parameters(), lr=lr)
         
     def prediction(self , x ) : 
         #x : (batch , d_in)
