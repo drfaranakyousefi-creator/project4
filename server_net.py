@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.nn.functional import softmax
 import torch.nn.functional as F
-
+سس
 def squash(x, dim=-1):
     # x: (batch, n_caps_out, caps_out_dim)
     s_norm_sq = torch.sum(x ** 2, dim=dim, keepdim=True)
@@ -110,7 +110,7 @@ class prediction_net(nn.Module):
         x = self.dropout(x)
         
         x = self.layer3(x)
-        x = self.relu(x)
+        #x = self.relu(x)
         x = self.primary_caps(x)
         x = self.secoundary_caps(x)
         x = x.reshape(batch_size , -1)
