@@ -124,7 +124,7 @@ class prediction_net(nn.Module):
             label = torch.tensor(label, dtype=torch.float, device=self.device)
             self.optimizer.zero_grad()
             output = self.prediction(combined_embedded)
-            loss = self.loss_fn(output, label)
+            loss = self.loss_fn(output.squeeze(-1), label)
             loss.backward()
             
             # Gradient clipping for stability
