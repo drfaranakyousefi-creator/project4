@@ -68,7 +68,8 @@ def extract_data_from_person(dataframe, W, dataset_name, target):
         elif item_id == 456:
             e[3] = value; x[s, :] = e.clone(); m[s] = 1; s += 1
         elif (item_id == 678) | (item_id == 676):
-            e[4] = value; x[s, :] = e.clone(); m[s] = 1; s += 1
+            if N == 5:  # فقط carevue این ستون رو داره
+                e[4] = value; x[s, :] = e.clone(); m[s] = 1; s += 1
 
     if len(data) > 0:
         data  = torch.stack(data, dim=0)
@@ -171,10 +172,31 @@ class data_preparing:
         self.train_loader = DataLoader(train_dataset, batch_size, shuffle=True)
         self.test_loader  = DataLoader(test_dataset,  batch_size, shuffle=True)
 
-        # فقط feature stats - label normalize نشده
+        # محاسبه label mean و std از مقادیر خام label
+        label_values = []
+        for _, row in filtered.iterrows():
+            if row['itemid'] == label_itemid:
+                v = self._safe_float(row['value'])
+                if v != 0.0:
+                    label_values.append(v)
+
+        if len(label_values) > 0:
+            lv = torch.tensor(label_values, dtype=torch.float)
+            label_mean = lv.mean()
+            label_std  = lv.std() + 1e-4
+        else:
+            label_mean = torch.tensor(0.0)
+            label_std  = torch.tensor(1.0)
+
+        self.label_mean = label_mean
+        self.label_std  = label_std
+
+        # feature stats + label stats
         self.stats = {
             'feature_mean': self.feature_mean,
             'feature_std':  self.feature_std,
+            'label_mean':   label_mean,
+            'label_std':    label_std,
         }
 
     @staticmethod
