@@ -75,7 +75,7 @@ class secoundary_capsules(nn.Module):
 
 
 class prediction_net(nn.Module):
-    def __init__(self, d_in, n_input_caps, n_output_caps, in_caps_dim, out_caps_dim, n_routing=3, lr=0.01):
+    def __init__(self, d_in, n_input_caps, n_output_caps, in_caps_dim, out_caps_dim, n_routing=3, lr=0.01, label_mean=0.0, label_std=1.0):
         super().__init__()
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -102,8 +102,9 @@ class prediction_net(nn.Module):
 
         # دو پارامتر قابل آموزش برای scale و shift خروجی
         # y_pred_final = y_pred * output_scale + output_shift
-        self.output_scale = nn.Parameter(torch.tensor(1.0))
-        self.output_shift = nn.Parameter(torch.tensor(0.0))
+        # مقدار اولیه از label_mean و label_std داده میشه
+        self.output_scale = nn.Parameter(torch.tensor(label_std))
+        self.output_shift = nn.Parameter(torch.tensor(label_mean))
 
         self.loss_fn = nn.MSELoss()
         self.optimizer = optim.Adam(self.parameters(), lr=lr)
