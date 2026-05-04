@@ -34,7 +34,17 @@ class CAT(nn.Module) :
         self.data = data_preparing(df_chartevents ,dataset_name , seq_len , test_size , target  ,batch_size)
         
         # Communication/transmission module
-        self.transmittion = Transmitter(cap_in_dim , device, lr)
+        label_mean = self.data.stats["label_mean"].item()
+        label_std  = self.data.stats["label_std"].item()
+        self.transmittion = Transmitter(cap_in_dim, device, lr, label_mean=label_mean, label_std=label_std)
+        print(f"Server initialized: output_scale={label_std:.2f}, output_shift={label_mean:.2f}")
+
+        # initialize output_scale و output_shift از label stats
+        label_mean = self.data.stats["label_mean"].item()
+        label_std  = self.data.stats["label_std"].item()
+        self.transmittion.model.output_scale.data.fill_(label_std)
+        self.transmittion.model.output_shift.data.fill_(label_mean)
+        print(f"output_scale initialized to {label_std:.2f}, output_shift initialized to {label_mean:.2f}")
         
         self.batch_size = batch_size 
         
@@ -88,10 +98,8 @@ class CAT(nn.Module) :
             
             # فقط اولین batch رو پرینت میکنه
             if i == 0:
-                print("v sample:", v[0].detach().cpu().numpy())
                 print("v mean:", v.mean().item(), "v std:", v.std().item())
-                print("v min:", v.min().item(), "v max:", v.max().item())
-                print("grad mean:", grad.abs().mean().item())
+                print("grad mean:", grad.abs().mean().item(), "grad max:", grad.abs().max().item())
                 print("loss_client:", loss_client.item())
             
             self.network.train_one_batch(loss_client, v, grad.clone())
